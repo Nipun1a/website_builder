@@ -1,4 +1,4 @@
-import React, { use } from 'react'
+import React from 'react'
 import { assets } from '../assets/assets';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -29,7 +29,7 @@ const Navbar = () => {
             <button className="px-6 py-2 bg-indigo-600 active:scale-95 hover:bg-indigo-700 transition rounded-md">
               Get started
             </button>
-            <button id="open-menu" className="md:hidden active:scale-90 transition" onClick={() => navigate('/auth/signin')} >
+            <button id="open-menu" className="md:hidden active:scale-90 transition" title="Open menu" onClick={() => navigate('/auth/signin')} >
             <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg>
           </button>
           </div>
@@ -48,7 +48,7 @@ const Navbar = () => {
             
             
             
-            <button className="active:ring-3 active:ring-white aspect-square size-10 p-1 items-center justify-center bg-slate-100 hover:bg-slate-200 transition text-black rounded-md flex" onClick={() => setMenuOpen(true)} >
+            <button className="active:ring-3 active:ring-white aspect-square size-10 p-1 items-center justify-center bg-slate-100 hover:bg-slate-200 transition text-black rounded-md flex" title="Close menu" onClick={() => setMenuOpen(true)} >
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
           </div>

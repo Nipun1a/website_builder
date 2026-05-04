@@ -1,3 +1,10 @@
-1 search the icon for this project 
+
+Mistake 1: The "Preview" and "Open" buttons were placed in the card footer section, making the layout cluttered and inconsistent with typical UI patterns where action buttons are overlaid on previews.
+
+Fix 1: Moved the buttons to overlay on the iframe preview section with opacity transitions on hover, providing a cleaner card footer for project details and enhancing user experience.
+
+Mistake 2: The JSX in `MyProjects.tsx` was broken by a missing closing `</div>`, which caused the Vite build to fail with an internal server error and unexpected token parsing issues.
+
+Fix 2: Repaired the project card structure by adding the missing closing tag, nesting the `TrashIcon` inside the card container, and cleaning up unused imports/state warnings in other files so the app compiles correctly.
 
 
