@@ -15,7 +15,7 @@ const MyProjects = () => {
     setProjects(dummyProjects);
     setTimeout(() => {
       setLoading(false);
-    }, 1000);
+    }, 500);
   };
 
   const deleteProject = async (projectId: string) => {
@@ -90,6 +90,7 @@ const MyProjects = () => {
                   <div className='flex justify-between items-center mt-4'>
                     <span className='text-sm text-gray-500'>{new Date(project.createdAt).toLocaleDateString()}</span>
                   </div>
+                  //TrashIcon is here
                   <TrashIcon
                     onClick={(e) => {
                       e.stopPropagation();
