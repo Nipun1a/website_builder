@@ -29,6 +29,15 @@ const Projects = () => {
     }, 500)
 
   }
+  const saveProject = async () =>{
+
+  }
+  const downloadCode = () =>{
+
+  }
+  const togglePublish = async () =>{
+
+  }
 
   useEffect(() => {
     fetchProject()
@@ -52,7 +61,7 @@ const Projects = () => {
       <div className='flex max-sm:flex-col sm:items-center justify-between gap-4 px-4 py-2 no-scroller'>
         {/*left*/}
         <div className='flex items-center gap-2 text-nowrap'>
-          <img src="/logo.svg" alt="logo" className='h-6 cursor-pointer' onClick={() => navigate('/')} />
+          <img src={logo} alt="logo" className='h-6 cursor-pointer' onClick={() => navigate('/')} />
           <div>
             <p>{project.name}</p>
             <p className='text-xs text-gray-400 mt-0.5 truncate'>Previewing the last saved version</p>
@@ -69,23 +78,30 @@ const Projects = () => {
         </div>
         {/*right*/}
         <div className='flex items-center justify-end gap-3 text-xs sm:text-sm'>
-          <button disabled={isSaving} onClick={() => setIsSaving(true)}>
+          <button  className='flex item-center gap-2 px-4 py-1 rounded-sm border border-gray-700 hover:border-gray-500 transition-colors' disabled={isSaving} onClick={() => setIsSaving(true)}>
             {isSaving ? <Loader2Icon className='animate-spin' size={16} /> : <SaveIcon size={16} />}
             Save
           </button>
-          <Link target='_blank' to={`/projects/${projectId}`}> 
+          <Link target='_blank' to={`/projects/${projectId}`} className='flex item-center gap-2 px-4 py-1 rounded-sm border border-gray-700 hover:border-gray-500 transition-colors'> 
             <FullscreenIcon size={16} /> 
             Preview 
           </Link>
-          <button>
+          <button className='bg-linear-to-br form-blue-700 to-blue-600 hover: from-blue-600 hover:to-blue-500 text-white px-3.5 py-1 flex items-center gap-2 rounded sm:rounded-sm transition-colors'>
             <ArrowBigDownDashIcon size={16} />
             Download
           </button>
-          <button>
+          <button onClick={togglePublish} className='bg-linear-to-br form-blue-700 to-blue-600 hover: from-blue-600 hover:to-blue-500 text-white px-3.5 py-1 flex items-center gap-2 rounded sm:rounded-sm transition-colors'>
             {project.isPublished ? <EyeOffIcon size={16} /> : <EyeIcon size={16} />}
             {project.isPublished ? 'Unpublish' : 'Publish'}
           </button>
         </div>
+      </div>
+      <div className='flex-1 flex overflow-auto'>
+        <div>Sidebar</div>
+        <div className='flex-1 p-2 pl-0'>
+          project preview 
+        </div>
+
       </div>
     </div>
   )
