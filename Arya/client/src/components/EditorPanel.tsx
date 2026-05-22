@@ -42,7 +42,7 @@ const EditorPanel = ({ selectedElement, onUpdate, onClose }: EditorPanelProps) =
       onUpdate({styles: {[styleName]: value}})
     }
     return (
-    <div className='absolute top-4 right-4 z-50 w-80 rounded-lg border border-gray-200 bg-white p-4 text-gray-900 shadow-xl'>
+    <div className='absolute top-4 right-4 z-50 w-80 rounded-lg border border-gray-200 bg-white p-4 text-gray-900 shadow-xl animate-fade-in'>
       <div className='mb-4 flex items-center justify-between'>
         <h3 className='text-sm font-semibold'>Edit Element</h3>
         <button type='button' onClick={onClose} className='rounded-full p-1 hover:bg-gray-100'>

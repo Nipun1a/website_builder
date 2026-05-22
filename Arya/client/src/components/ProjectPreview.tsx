@@ -2,6 +2,7 @@ import React, { forwardRef, useEffect, useImperativeHandle } from 'react'
 import type { Project } from '../types'
 import { iframeScript } from '../assets/assets';
 import type { SelectedElementData } from './EditorPanel';
+import LoaderSteps from './LoaderSteps';
 
 
 
@@ -27,9 +28,28 @@ const ProjectPreview = forwardRef<ProjectPreviewRef, ProjectPreviewProps>(({proj
         tablet: 'w-[768px]',
         desktop: 'w-full',
     }
-
     useImperativeHandle(ref, () => ({
-        getCode: () => iframeRef.current?.srcDoc,
+        getCode: () => {
+            const doc = iframeRef.current?.contentDocument;
+            if (!doc) {
+                return project.current_code;
+            }
+
+            const cleanDoc = doc.documentElement.cloneNode(true) as HTMLHtmlElement;
+
+            cleanDoc
+                .querySelectorAll('.ai-selected-element,[data-ai-selected]')
+                .forEach((element) => {
+                    element.classList.remove('ai-selected-element');
+                    element.removeAttribute('data-ai-selected');
+                    (element as HTMLElement).style.outline = '';
+                });
+
+            cleanDoc.querySelector('#ai-preview-style')?.remove();
+            cleanDoc.querySelector('#ai-preview-script')?.remove();
+
+            return `<!DOCTYPE html>\n${cleanDoc.outerHTML}`;
+        },
         updateSelectedElement: (updates) => {
             iframeRef.current?.contentWindow?.postMessage({
                 type: 'UPDATE_ELEMENT',
@@ -85,7 +105,7 @@ const ProjectPreview = forwardRef<ProjectPreviewRef, ProjectPreviewProps>(({proj
             </>
 
         ):isGenerating && (
-            <div>loading</div>
+            <LoaderSteps />
         )}
       
     </div>

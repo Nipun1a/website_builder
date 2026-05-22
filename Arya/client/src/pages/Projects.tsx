@@ -40,9 +40,28 @@ const Projects = () => {
   const saveProject = async () =>{
 
   }
-  const downloadCode = () =>{
+  // download code as index.html
+  const downloadCode = () => {
+    const code = previewRef.current?.getCode() || project?.current_code;
+    if (!code) {
+      return;
+    }
 
-  }
+    const element = document.createElement('a');
+    const file = new Blob([code], { type: 'text/html' });
+    const url = URL.createObjectURL(file);
+
+    element.href = url;
+    element.download = 'index.html';
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    
+    window.setTimeout(() => {
+      document.body.removeChild(element);
+      URL.revokeObjectURL(url);
+    }, 100);
+  };
   const togglePublish = async () =>{
 
   }
@@ -115,7 +134,12 @@ const Projects = () => {
             <FullscreenIcon size={16} /> 
             Preview 
           </Link>
-          <button className='bg-linear-to-br form-blue-700 to-blue-600 hover: from-blue-600 hover:to-blue-500 text-white px-3.5 py-1 flex items-center gap-2 rounded sm:rounded-sm transition-colors'>
+          <button
+            type='button'
+            onClick={downloadCode}
+            disabled={!project.current_code && isGenerating}
+            className='bg-linear-to-br form-blue-700 to-blue-600 hover: from-blue-600 hover:to-blue-500 text-white px-3.5 py-1 flex items-center gap-2 rounded sm:rounded-sm transition-colors disabled:cursor-not-allowed disabled:opacity-60'
+          >
             <ArrowBigDownDashIcon size={16} />
             Download
           </button>
