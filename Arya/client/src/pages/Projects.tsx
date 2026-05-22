@@ -1,10 +1,12 @@
 import { ArrowBigDownDashIcon, FullscreenIcon, LaptopIcon, Loader2Icon, MessageSquareIcon, SaveIcon, SmartphoneIcon, TabletIcon, EyeIcon, EyeOffIcon } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { dummyConversations, dummyProjects, dummyVersion } from '../assets/assets'
 import logo from '../assets/logo.svg'
 import type { Project } from '../types'
 import Sidebar from '../components/Sidebar'
+import ProjectPreview, { type ProjectPreviewRef } from '../components/ProjectPreview'
+import EditorPanel, { type SelectedElementData } from '../components/EditorPanel'
 
 const Projects = () => {
 
@@ -16,9 +18,14 @@ const Projects = () => {
 
   const [isGenerating, setIsGenerating] = useState(true)
   const [device, setDevice] = useState<'phone'|'tablet'|'desktop'>('desktop')
+  const [selectedElement, setSelectedElement] = useState<SelectedElementData | null>(null)
 
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  
+  const previewRef = useRef<ProjectPreviewRef>(null)
+
+
   const fetchProject = async () => {
     const project = dummyProjects.find(project => project.id === projectId)
     setTimeout(() => {
@@ -39,6 +46,27 @@ const Projects = () => {
   const togglePublish = async () =>{
 
   }
+
+  const handleElementUpdate = (updates: Partial<SelectedElementData> & { styles?: Partial<SelectedElementData['styles']> }) => {
+    if (!selectedElement) return;
+
+    const nextValue: SelectedElementData = {
+      ...selectedElement,
+      ...updates,
+      styles: {
+        ...selectedElement.styles,
+        ...(updates.styles ?? {}),
+      },
+    };
+
+    setSelectedElement(nextValue);
+    previewRef.current?.updateSelectedElement(updates);
+  };
+
+  const handleEditorClose = () => {
+    setSelectedElement(null);
+    previewRef.current?.clearSelection();
+  };
 
   useEffect(() => {
     fetchProject()
@@ -99,8 +127,21 @@ const Projects = () => {
       </div>
       <div className='flex-1 flex overflow-auto'>
         <div><Sidebar isMenuOpen={isMenuOpen} project={project} setProject={(p)=>setProject(p)} isGenerating={isGenerating} setIsGenerating={setIsGenerating}/></div>
-        <div className='flex-1 p-2 pl-0'>
-          project preview 
+        <div className='relative flex-1 p-2 pl-0'>
+          <ProjectPreview
+            ref={previewRef}
+            project={project}
+            isGenerating={isGenerating}
+            device={device}
+            showEditorPanel={true}
+            onElementSelect={setSelectedElement}
+            onClearSelection={() => setSelectedElement(null)}
+          />
+          <EditorPanel
+            selectedElement={selectedElement}
+            onUpdate={handleElementUpdate}
+            onClose={handleEditorClose}
+          />
         </div>
 
       </div>
