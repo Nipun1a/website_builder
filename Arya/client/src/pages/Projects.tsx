@@ -1,9 +1,10 @@
 import { ArrowBigDownDashIcon, FullscreenIcon, LaptopIcon, Loader2Icon, MessageSquareIcon, SaveIcon, SmartphoneIcon, TabletIcon, EyeIcon, EyeOffIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
-import { dummyConversations, dummyProjects } from '../assets/assets'
+import { dummyConversations, dummyProjects, dummyVersion } from '../assets/assets'
 import logo from '../assets/logo.svg'
 import type { Project } from '../types'
+import Sidebar from '../components/Sidebar'
 
 const Projects = () => {
 
@@ -22,7 +23,7 @@ const Projects = () => {
     const project = dummyProjects.find(project => project.id === projectId)
     setTimeout(() => {
       if(project){
-        setProject({...project, converstion: dummyConversations})
+        setProject({...project, conversation: dummyConversations, versions: dummyVersion})
         setLoading(false)
         setIsGenerating(project.current_code ? false : true)
       }
@@ -97,7 +98,7 @@ const Projects = () => {
         </div>
       </div>
       <div className='flex-1 flex overflow-auto'>
-        <div>Sidebar</div>
+        <div><Sidebar isMenuOpen={isMenuOpen} project={project} setProject={(p)=>setProject(p)} isGenerating={isGenerating} setIsGenerating={setIsGenerating}/></div>
         <div className='flex-1 p-2 pl-0'>
           project preview 
         </div>
