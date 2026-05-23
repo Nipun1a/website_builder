@@ -1,64 +1,160 @@
 import React from 'react'
-import { assets } from '../assets/assets';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '@better-auth-ui/react'
+
+import { assets } from '../assets/assets'
+import { UserAvatar } from '@/components/user-avatar'
+import { authClient } from '@/lib/auth-client'
 
 const Navbar = () => {
-    const [menuOpen, setMenuOpen] = React.useState(false);
-    const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = React.useState(false)
+  const navigate = useNavigate()
+  const { viewPaths } = useAuth()
+
+  const { data: session } = authClient.useSession()
+
   return (
-    <>
-      <nav className="z-50 flex items-center justify-between w-full py-4 px-4 md:px-16 lg:px-24 xl:px-32 backdrop-blur border-b text-white border-slate-800">
-        <Link to ='/'>
-        <img src={assets.logo} alt="logo" className = 'h-5 sm:h-7' />
+    <header className="relative">
+      <nav className="z-50 flex w-full items-center justify-between border-b border-slate-800 px-4 py-4 text-white backdrop-blur md:px-16 lg:px-24 xl:px-32">
+        <Link to="/">
+          <img src={assets.logo} alt="logo" className="h-5 sm:h-7" />
         </Link>
-              
-          
 
-          <div className="hidden md:flex items-center gap-8 transition duration-500">
-            <Link to='/'>Home</Link>
-            <Link to='/projects'>My Projects</Link>
-            <Link to='/community'>Community</Link>
-            <Link to='/pricing'>Pricing</Link>
-            
-          </div>
+        <div className="hidden items-center gap-8 transition duration-500 md:flex">
+          <Link to="/">Home</Link>
+          <Link to="/projects">My Projects</Link>
+          <Link to="/community">Community</Link>
+          <Link to="/pricing">Pricing</Link>
+        </div>
 
-          <div className="flex items-center gap-3">
-           {/*} <button className="active:scale-95 hover:bg-indigo-600/20 transition px-4 py-2 border border-indigo-600 rounded">
+        <div className="flex items-center gap-3">
+          {!session?.user ? (
+            <>
+              <button
+                className="rounded-md bg-indigo-600 px-6 py-2 transition active:scale-95 hover:bg-indigo-700"
+                onClick={() => navigate(`/auth/${viewPaths.auth.signIn}`)}
+              >
+                Get started
+              </button>
+              <button
+                id="open-menu"
+                className="transition active:scale-90 md:hidden"
+                title="Open menu"
+                onClick={() => setMenuOpen(true)}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="26"
+                  height="26"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M4 5h16" />
+                  <path d="M4 12h16" />
+                  <path d="M4 19h16" />
+                </svg>
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 transition hover:bg-white/10"
+                onClick={() => navigate('/settings')}
+                title="Open settings"
+              >
+                <UserAvatar />
+                <span className="hidden text-sm font-medium sm:block">
+                  Profile
+                </span>
+              </button>
+              <button
+                id="open-menu"
+                className="transition active:scale-90 md:hidden"
+                title="Open menu"
+                onClick={() => setMenuOpen(true)}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="26"
+                  height="26"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M4 5h16" />
+                  <path d="M4 12h16" />
+                  <path d="M4 19h16" />
+                </svg>
+              </button>
+            </>
+          )}
+        </div>
+      </nav>
+
+      {menuOpen && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-8 bg-black/60 text-lg text-white backdrop-blur transition-transform duration-300 md:hidden">
+          <Link to="/" onClick={() => setMenuOpen(false)}>
+            Home
+          </Link>
+          <Link to="/projects" onClick={() => setMenuOpen(false)}>
+            My Projects
+          </Link>
+          <Link to="/community" onClick={() => setMenuOpen(false)}>
+            Community
+          </Link>
+          <Link to="/pricing" onClick={() => setMenuOpen(false)}>
+            Pricing
+          </Link>
+
+          {session?.user ? (
+            <Link to="/settings" onClick={() => setMenuOpen(false)}>
+              Profile
+            </Link>
+          ) : (
+            <Link
+              to={`/auth/${viewPaths.auth.signIn}`}
+              onClick={() => setMenuOpen(false)}
+            >
               Sign in
-            </button>*/}
-            <button className="px-6 py-2 bg-indigo-600 active:scale-95 hover:bg-indigo-700 transition rounded-md">
-              Get started
-            </button>
-            <button id="open-menu" className="md:hidden active:scale-90 transition" title="Open menu" onClick={() => navigate('/auth/signin')} >
-            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg>
+            </Link>
+          )}
+
+          <button
+            className="flex size-10 items-center justify-center rounded-md bg-slate-100 p-1 text-black transition hover:bg-slate-200 active:ring-4 active:ring-white"
+            title="Close menu"
+            onClick={() => setMenuOpen(false)}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M18 6 6 18" />
+              <path d="m6 6 12 12" />
+            </svg>
           </button>
-          </div>
+        </div>
+      )}
 
-        </nav>
-
-
-
-        {/* Mobile Menu */}
-        {menuOpen && (
-          <div className="fixed inset-0 z-[100] bg-black/60 text-white backdrop-blur flex flex-col items-center justify-center text-lg gap-8 md:hidden transition-transform duration-300">
-            <Link to='/' onClick={() => setMenuOpen(false)}>Home</Link>
-            <Link to='/projects' onClick={() => setMenuOpen(false)}>My Projects</Link>
-            <Link to='/community' onClick={() => setMenuOpen(false)}>Community</Link>
-            <Link to='/pricing' onClick={() => setMenuOpen(false)}>Pricing</Link>
-            
-            
-            
-            <button className="active:ring-3 active:ring-white aspect-square size-10 p-1 items-center justify-center bg-slate-100 hover:bg-slate-200 transition text-black rounded-md flex" title="Close menu" onClick={() => setMenuOpen(true)} >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-            </button>
-          </div>
-        )}
-
-        {/* Background image */}
-
-        <img src="https://raw.githubusercontent.com/prebuiltui/prebuiltui/refs/heads/main/assets/hero/bg-gradient-2.png" className="absolute inset-0 -z-10 size-full opacity" alt="" />
-
-    </>
+      <img
+        src="https://raw.githubusercontent.com/prebuiltui/prebuiltui/refs/heads/main/assets/hero/bg-gradient-2.png"
+        className="absolute inset-0 -z-10 size-full opacity-40"
+        alt=""
+      />
+    </header>
   )
 }
 

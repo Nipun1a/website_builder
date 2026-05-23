@@ -2,6 +2,8 @@ import express from 'express';
 import type { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import {toNodeHandler} from 'better-auth/node';
+import {auth} from './lib/auth.js';
 
 
 dotenv.config();
@@ -12,12 +14,14 @@ const app = express();
 const port = 3000;
 
 const corsOptions = {
-    origin: process.env.TRUSTED_ORIGINS?.split(','),
-    Credentials: true,
+    origin: process.env.TRUSTED_ORIGINS?.split(',') || [],
+    credentials: true,
     optionsSuccessStatus: 200,
 }
 
-app.use(cors());
+app.use(cors(corsOptions));
+
+app.all('/api/auth/{*any}', toNodeHandler(auth));
 
 app.get('/', (req: Request, res: Response) => {
     res.send('Hello World! from the server');

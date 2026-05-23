@@ -6,7 +6,9 @@ import Community from './pages/Community'
 import MyProjects from './pages/MyProjects'
 import Preview from './pages/Preview'
 import View from './pages/View'
-
+import SettingsPage from './pages/Seetings'
+import { Toaster } from "@/components/ui/sonner"
+import AuthPage from './pages/Auth/AuthPage'
 import Navbar from './components/Navbar'
 
 
@@ -21,6 +23,7 @@ const hideNavbar = pathname.startsWith('/projects/') && pathname !== '/projects'
 
   return (
     <div>
+    <Toaster />
       {!hideNavbar && <Navbar />}
       <Routes>
         <Route path="/" element={<Home />} />
@@ -32,6 +35,9 @@ const hideNavbar = pathname.startsWith('/projects/') && pathname !== '/projects'
         <Route path="/my-projects" element={<MyProjects />} />
         <Route path="/preview/:projectId/:versionId" element={<Preview />} />
         <Route path="/view/:projectId" element={<View />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/auth/:pathname" element={<AuthPage />} />
+        
         
       </Routes>
     </div>

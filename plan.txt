@@ -274,4 +274,20 @@ I connected the iframe selection system in ProjectPreview to page-level React st
 tly.
 
 
+New errors fix:
+- Changed the server import to use ESM path: `./lib/auth.js`
+- Fixed `lib/auth.ts` import/export and naming issues
+- Updated Prisma config so TypeScript compiles cleanly
+
+Auth UI fix:
+- Replaced the broken `provider.tsx` auth import with the local Better Auth UI provider
+- Wrapped the auth route in a proper dark shell so sign-in and sign-up look readable in dark mode
+- Styled the auth card with a glassy dark background, stronger contrast, and a cleaner centered layout
+
+Account settings fix:
+- Installed the Better Auth account-settings registry with `shadcn add`
+- Switched the settings page to the generated `@/components/account-settings` import
+- Used `--yes --overwrite` so the CLI could finish without the registry prompt blocking file creation
+
+
 for the new errors 
