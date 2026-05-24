@@ -10,13 +10,29 @@ export const auth = betterAuth({
      //...other options
   emailAndPassword: { 
     enabled: true, 
+    sendResetPassword: async ({ user, url }) => {
+      // Dev fallback: log reset link. Replace with real email sender in prod.
+      console.log(`[Better Auth] Reset password link for ${user.email}: ${url}`);
+    }
   }, 
-  socialProviders: { 
+  user:{
+    deleteUser: { enabled: true },
+    changeEmail: {
+      enabled: true,
+      sendChangeEmailVerification: async ({ user, newEmail, url }) => {
+        // Dev fallback: log change-email verification link.
+        console.log(
+          `[Better Auth] Change email verification for ${user.email} -> ${newEmail}: ${url}`
+        );
+      }
+    }
+  },
+  /*socialProviders: { 
     github: { 
       clientId: process.env.GITHUB_CLIENT_ID as string, 
       clientSecret: process.env.GITHUB_CLIENT_SECRET as string, 
     },
-  }, 
+  },*/ 
   trustedOrigins,
   baseURL: process.env.BETTER_AUTH_URL!,
   secret: process.env.BETTER_AUTH_SECRET!,

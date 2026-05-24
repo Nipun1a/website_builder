@@ -5,6 +5,8 @@ import type { ComponentProps } from "react"
 
 import { cn } from "@/lib/utils"
 import { ChangeEmail } from "./change-email"
+import { ChangePassword } from "./change-password"
+import { DeleteUser } from "./delete-user"
 import { UserProfile } from "./user-profile"
 
 export type AccountSettingsProps = {
@@ -37,6 +39,8 @@ export function AccountSettings({
     >
       <UserProfile />
       {(emailAndPassword?.enabled || hasMagicLink) && <ChangeEmail />}
+      {emailAndPassword?.enabled && <ChangePassword />}
+      <DeleteUser />
       {plugins.flatMap(
         (plugin) =>
           plugin.accountCards?.map((Card, index) => (

@@ -8,10 +8,24 @@ import { authClient } from '@/lib/auth-client'
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = React.useState(false)
+  const [profileMenuOpen, setProfileMenuOpen] = React.useState(false)
+  const profileMenuRef = React.useRef<HTMLDivElement | null>(null)
   const navigate = useNavigate()
   const { viewPaths } = useAuth()
 
   const { data: session } = authClient.useSession()
+
+  React.useEffect(() => {
+    const onPointerDown = (event: MouseEvent) => {
+      if (!profileMenuRef.current) return
+      if (!profileMenuRef.current.contains(event.target as Node)) {
+        setProfileMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', onPointerDown)
+    return () => document.removeEventListener('mousedown', onPointerDown)
+  }, [])
 
   return (
     <header className="relative">
@@ -60,17 +74,38 @@ const Navbar = () => {
               </button>
             </>
           ) : (
-            <>
+            <div className="relative" ref={profileMenuRef}>
               <button
-                className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 transition hover:bg-white/10"
-                onClick={() => navigate('/settings')}
-                title="Open settings"
+                className="rounded-full border border-white/10 bg-white/5 p-1.5 transition hover:bg-white/10"
+                onClick={() => setProfileMenuOpen((prev) => !prev)}
+                title="Open profile menu"
               >
                 <UserAvatar />
-                <span className="hidden text-sm font-medium sm:block">
-                  Profile
-                </span>
               </button>
+
+              {profileMenuOpen && (
+                <div className="absolute right-0 top-12 z-[120] min-w-40 rounded-xl border border-white/10 bg-slate-950/95 p-1 text-sm shadow-xl backdrop-blur">
+                  <button
+                    className="block w-full rounded-lg px-3 py-2 text-left transition hover:bg-white/10"
+                    onClick={() => {
+                      setProfileMenuOpen(false)
+                      navigate('/settings')
+                    }}
+                  >
+                    Profile
+                  </button>
+                  <button
+                    className="block w-full rounded-lg px-3 py-2 text-left transition hover:bg-white/10"
+                    onClick={() => {
+                      setProfileMenuOpen(false)
+                      navigate(`/auth/${viewPaths.auth.signOut}`)
+                    }}
+                  >
+                    Sign out
+                  </button>
+                </div>
+              )}
+
               <button
                 id="open-menu"
                 className="transition active:scale-90 md:hidden"
@@ -93,7 +128,7 @@ const Navbar = () => {
                   <path d="M4 19h16" />
                 </svg>
               </button>
-            </>
+            </div>
           )}
         </div>
       </nav>
