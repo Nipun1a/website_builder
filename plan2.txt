@@ -1,0 +1,8 @@
+1 fix the overall frontend of the website 
+2 make the alert like feature but at bottom when the use sign-up sign-in and password,email change 
+3 remove the delete feature of the website
+4 fix the errors in all files and folders
+5 provider.tsx consist of the authprovider but he do it some other way take care of it 
+6 There is footer just make it coorect
+7 improve all the wording and other small stuff of the project 
+
