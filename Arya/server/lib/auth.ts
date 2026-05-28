@@ -19,7 +19,7 @@ export const auth = betterAuth({
     deleteUser: { enabled: true },
     changeEmail: {
       enabled: true,
-      sendChangeEmailVerification: async ({ user, newEmail, url }) => {
+      sendChangeEmailVerification: async ({ user, newEmail, url }: any) => {
         // Dev fallback: log change-email verification link.
         console.log(
           `[Better Auth] Change email verification for ${user.email} -> ${newEmail}: ${url}`
