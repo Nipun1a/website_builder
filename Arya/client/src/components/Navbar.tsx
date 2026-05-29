@@ -1,10 +1,12 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@better-auth-ui/react'
 
 import { assets } from '../assets/assets'
 import { UserAvatar } from '@/components/user-avatar'
 import { authClient } from '@/lib/auth-client'
+import api from '@/configs/axios'
+import { toast } from 'sonner'
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = React.useState(false)
@@ -12,6 +14,8 @@ const Navbar = () => {
   const profileMenuRef = React.useRef<HTMLDivElement | null>(null)
   const navigate = useNavigate()
   const { viewPaths } = useAuth()
+  const [credits, setCredits] = useState(0)
+
 
   const { data: session } = authClient.useSession()
 
@@ -26,6 +30,46 @@ const Navbar = () => {
     document.addEventListener('mousedown', onPointerDown)
     return () => document.removeEventListener('mousedown', onPointerDown)
   }, [])
+
+  useEffect(() => {
+    if (!session?.user) {
+      return
+    }
+
+    let isMounted = true
+
+    api
+      .get<{ credits: number }>('/api/user/credits')
+      .then(({ data }) => {
+        if (isMounted) {
+          setCredits(data.credits)
+        }
+      })
+      .catch((error: unknown) => {
+        const message =
+          typeof error === 'object' &&
+          error !== null &&
+          'response' in error &&
+          typeof error.response === 'object' &&
+          error.response !== null &&
+          'data' in error.response &&
+          typeof error.response.data === 'object' &&
+          error.response.data !== null &&
+          'message' in error.response.data &&
+          typeof error.response.data.message === 'string'
+            ? error.response.data.message
+            : error instanceof Error
+              ? error.message
+              : 'Failed to load credits'
+
+        toast.error(message)
+        console.log(error)
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [session?.user])
 
   return (
     <header className="relative">
@@ -74,38 +118,42 @@ const Navbar = () => {
               </button>
             </>
           ) : (
-            <div className="relative" ref={profileMenuRef}>
-              <button
-                className="rounded-full border border-white/10 bg-white/5 p-1.5 transition hover:bg-white/10"
-                onClick={() => setProfileMenuOpen((prev) => !prev)}
-                title="Open profile menu"
-              >
-                <UserAvatar />
+            <>
+              <button className="rounded-md border border-white/10 bg-white/5 px-4 py-2 text-sm">
+                Credits: <span className="text-indigo-300">{credits}</span>
               </button>
+              <div className="relative" ref={profileMenuRef}>
+                <button
+                  className="rounded-full border border-white/10 bg-white/5 p-1.5 transition hover:bg-white/10"
+                  onClick={() => setProfileMenuOpen((prev) => !prev)}
+                  title="Open profile menu"
+                >
+                  <UserAvatar />
+                </button>
 
-              {profileMenuOpen && (
-                <div className="absolute right-0 top-12 z-[120] min-w-40 rounded-xl border border-white/10 bg-slate-950/95 p-1 text-sm shadow-xl backdrop-blur">
-                  <button
-                    className="block w-full rounded-lg px-3 py-2 text-left transition hover:bg-white/10"
-                    onClick={() => {
-                      setProfileMenuOpen(false)
-                      navigate('/settings')
-                    }}
-                  >
-                    Profile
-                  </button>
-                  <button
-                    className="block w-full rounded-lg px-3 py-2 text-left transition hover:bg-white/10"
-                    onClick={() => {
-                      setProfileMenuOpen(false)
-                      navigate(`/auth/${viewPaths.auth.signOut}`)
-                    }}
-                  >
-                    Sign out
-                  </button>
-                </div>
-              )}
-
+                {profileMenuOpen && (
+                  <div className="absolute right-0 top-12 z-[120] min-w-40 rounded-xl border border-white/10 bg-slate-950/95 p-1 text-sm shadow-xl backdrop-blur">
+                    <button
+                      className="block w-full rounded-lg px-3 py-2 text-left transition hover:bg-white/10"
+                      onClick={() => {
+                        setProfileMenuOpen(false)
+                        navigate('/settings')
+                      }}
+                    >
+                      Profile
+                    </button>
+                    <button
+                      className="block w-full rounded-lg px-3 py-2 text-left transition hover:bg-white/10"
+                      onClick={() => {
+                        setProfileMenuOpen(false)
+                        navigate(`/auth/${viewPaths.auth.signOut}`)
+                      }}
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                )}
+              </div>
               <button
                 id="open-menu"
                 className="transition active:scale-90 md:hidden"
@@ -128,7 +176,7 @@ const Navbar = () => {
                   <path d="M4 19h16" />
                 </svg>
               </button>
-            </div>
+            </>
           )}
         </div>
       </nav>
