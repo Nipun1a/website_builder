@@ -1,30 +1,61 @@
-
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { Project } from '../types';
 import { Loader2Icon, PlusIcon, TrashIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { dummyProjects } from '../assets/assets';
 import Footer from '../components/Footer';
+import api from '@/configs/axios';
+import { authClient } from '@/lib/auth-client';
+import { toast } from 'sonner';
+
 
 const MyProjects = () => {
+  const {data: session, isPending} = authClient.useSession();
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState<Project[]>([]);
   const navigate = useNavigate();
 
-  const fetchProjects = async () => {
-    setProjects(dummyProjects);
-    setTimeout(() => {
-      setLoading(false);
-    }, 500);
-  };
+  const fetchProjects = useCallback(async () => {
+    setLoading(true);
+    try {
+      const {data} = await api.get('/api/user/projects')
+      setProjects(data.projects)
+    } catch (error: any) {
+      console.log(error);
+      toast.error(error?.response?.data?.message || error.message);
+    } finally {
+      setLoading(false)
+    }
+  }, []);
 
   const deleteProject = async (projectId: string) => {
-    console.log('delete project', projectId);
+    try {
+      const confirm = window.confirm('Are you sure you want to delete this project?');
+      if (!confirm) {
+        return;
+      }
+      await api.delete(`/api/project/delete/${projectId}`)
+      toast.success('Project deleted successfully');
+      setProjects((currentProjects) => currentProjects.filter((project) => project.id !== projectId));
+      
+    } catch (error:any) {
+      console.log(error);
+      toast.error(error?.response?.data?.message || error.message);
+      
+    }
   }
 
   useEffect(() => {
-    fetchProjects();
-  }, []);
+    if (isPending) {
+      return;
+    }
+
+    if(session?.user && !isPending){
+      void fetchProjects()
+    }else if (!isPending && !session?.user){
+      navigate('/');
+      toast('Please login to view your projects');
+    }
+  }, [fetchProjects, isPending, navigate, session?.user]);
 
   return (
     <div className="px-4 md:px-16 lg:px-24 xl:px-32">
@@ -90,7 +121,6 @@ const MyProjects = () => {
                   <div className='flex justify-between items-center mt-4'>
                     <span className='text-sm text-gray-500'>{new Date(project.createdAt).toLocaleDateString()}</span>
                   </div>
-                  //TrashIcon is here
                   <TrashIcon
                     onClick={(e) => {
                       e.stopPropagation();

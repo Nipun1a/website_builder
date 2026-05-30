@@ -1,6 +1,8 @@
 import { BotIcon, CodeIcon, Loader2Icon, SendIcon, UserIcon } from 'lucide-react';
 import type { Project, Version } from '../types';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, FormEvent } from 'react';
+import api from '@/configs/axios';
+import { toast } from 'sonner';
 
 interface SidebarProps {
   isMenuOpen: boolean;
@@ -20,19 +22,58 @@ const Sidebar = ({
   const messageRef = useRef<HTMLDivElement>(null);
   const [message, setMessage] = useState('');
 
-  const handleRevision = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!message.trim()) return;
-    
-    setIsGenerating(true);
-    
-    // TODO: Add actual API call to send message and get response
-    // For now, simulating a 3-second response time
-    setTimeout(() => {
+  const fetchProject = async () => {
+    try{
+      const {data} = await api.get(`/api/user/project/${project.id}`)
+      setProject(data.project)
+
+    }catch(error:any){
+      toast.error(error?.response?.data?.message || error.message);
+      console.log(error);
+    }
+  }
+
+  const handleRollback = async (versionId: string) => {
+    try {
+      const confirm = window.confirm('Are you sure you want to roll back to this version?');
+      if (!confirm) {
+        return;
+      }
+      setIsGenerating(true);
+      const { data } = await api.post(`/api/project/rollback/${project.id}/${versionId}`);
+      const { data: data2 } = await api.get(`/api/user/project/${project.id}`);
+      toast.success(data.message || 'Rolled back to selected version');
+      setProject(data2.project);
       setIsGenerating(false);
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || error.message || 'Failed to roll back');
+      console.log(error);
+      setIsGenerating(false);
+    }
+  }
+
+  const handleRevision = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    let interval:number | undefined;
+    try {
+      setIsGenerating(true);
+      interval = setInterval(() => {
+      },10000)
+      const { data } = await api.post(`/api/project/revision/${project.id}`, { message });
+      await fetchProject();
+      toast.success(data?.message || 'Revision requested');
       setMessage('');
-    }, 3000);
+      if (interval) clearInterval(interval as unknown as number);
+      setIsGenerating(false);
+
+
+    } catch (error:any) {
+      setIsGenerating(false);
+      toast.error(error?.response?.data?.message || error.message);
+      console.log(error);
+      if (interval) clearInterval(interval as unknown as number);
+      
+    }
   };
   const loaderSpanStyles = [
     { animationDelay: '0s' },
@@ -113,7 +154,7 @@ const Sidebar = ({
                       project.current_version_index === ver.id ?(
                         <button className='px-3 py-1 rounded-md text-xs bg-gray-700'>Current version</button>
                       ):(
-                        <button onClick={() => {}} className='px-3 py-1 rounded-md text-xs bg-indigo-500 hover:bg-indigo-600 text-white'>Roll back to this version</button>
+                        <button onClick={() => handleRollback(ver.id)} className='px-3 py-1 rounded-md text-xs bg-indigo-500 hover:bg-indigo-600 text-white'>Roll back to this version</button>
                       )
                     }
                     <a href={`/preview/${project.id}/${ver.id}`} target='_blank' rel='noreferrer' title='Preview version' aria-label='Preview version'>

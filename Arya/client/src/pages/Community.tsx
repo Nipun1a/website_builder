@@ -1,30 +1,43 @@
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { Project } from '../types';
-import { Loader2Icon} from 'lucide-react';
+import { Loader2Icon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { dummyProjects } from '../assets/assets';
 import Footer from '../components/Footer';
+import { dummyProjects } from '../assets/assets';
+import api from '@/configs/axios';
+import { toast } from 'sonner';
+
+
 
 const Community = () => {
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState<Project[]>([]);
   const navigate = useNavigate();
 
-  const fetchProjects = async () => {
-    setProjects(dummyProjects);
-    setTimeout(() => {
-      setLoading(false);
-    }, 500);
-  };
+  const fetchProjects = useCallback(async () => {
+    setLoading(true);
+    try{
+      const {data} = await api.get('/api/projects/published')
+      const combinedProjects = [...dummyProjects, ...data.projects]
+      const uniqueProjects = combinedProjects.filter(
+        (project, index, allProjects) =>
+          index === allProjects.findIndex((item) => item.id === project.id)
+      )
 
-  //const deleteProject = async (projectId: string) => {
-  //  console.log('delete project', projectId);
-  //}
+      setProjects(uniqueProjects)
+    }catch(error:any){
+      console.log(error);
+      toast.error(error?.response?.data?.message || error.message);
+      setProjects(dummyProjects as Project[])
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    fetchProjects();
-  }, []);
+    void fetchProjects();
+  }, [fetchProjects]);
 
   return (
     <div className="px-4 md:px-16 lg:px-24 xl:px-32">
@@ -42,7 +55,7 @@ const Community = () => {
           <div className="flex flex-wrap gap-3.5">
             {projects.map((project) => (
               <div
-                onClick={() => navigate(`/projects/${project.id}`)}
+                onClick={() => navigate(`/preview/${project.id}`, { state: { project } })}
                 key={project.id}
                 className="relative group w-72 max-sm:mx-auto cursor-pointer bg-gray-900/60 border border-gray-700 rounded-lg overflow-hidden shadow-md hover:shadow-indigo-700/30 hover:border-indigo-800/80 transition-all duration-300"
               >
@@ -61,29 +74,31 @@ const Community = () => {
                     </div>
                   )}
                   <div className="absolute bottom-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    
                     <button
-                      onClick={(e) => { e.stopPropagation(); navigate(`/projects/${project.id}`); }}
+                      onClick={(e) => { e.stopPropagation(); navigate(`/preview/${project.id}`, { state: { project } }); }}
                       className="px-3 py-1 bg-white/20 hover:bg-white/30 text-white text-sm rounded transition-all"
                     >
-                      <span>{project.user?.name?.slice(0,1)}</span>
-                      {project.user?.name}
+                      Preview
                     </button>
                   </div>
                 </div>
                 <div className='p-4 text-white bg-gray-950/80 border-t border-gray-800'>
                   <div className='flex items-start justify-between gap-2'>
                     <h2 className='text-lg font-semibold'>{project.name}</h2>
-                    <button className='text-sm text-indigo-300 hover:text-white transition-colors'>Website</button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/preview/${project.id}`, { state: { project } });
+                      }}
+                      className='text-sm text-indigo-300 hover:text-white transition-colors'
+                    >
+                      Website
+                    </button>
                   </div>
                   <p className='text-gray-400 mt-2 text-sm line-clamp-2'>{project.initial_prompt}</p>
                   <div className='flex justify-between items-center mt-4'>
                     <span className='text-sm text-gray-500'>{new Date(project.createdAt).toLocaleDateString()}</span>
                   </div>
-                  <div>
-                    <p className='text-sm text-gray-500'>Yug</p>
-                  </div>
-                  
                 </div>
               </div>
             ))}

@@ -5,4 +5,9 @@
 5 provider.tsx consist of the authprovider but he do it some other way take care of it 
 6 There is footer just make it coorect
 7 improve all the wording and other small stuff of the project 
-8 fix the model with kwaiplot
+8 fix the model with kwaiplot isko aur sahe karna ha multiple models ya key lagane ha ok so they work smoothly
+
+9 take a look to the sidebar that it can able to change the designs of the website by prompting ok and also check the rollback feature
+
+10 check out the functionality of the save button
+11 check out the toogle functionalitu also

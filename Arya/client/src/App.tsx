@@ -30,9 +30,9 @@ const hideNavbar = pathname.startsWith('/projects/') && pathname !== '/projects'
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/projects" element={<MyProjects />} />
         <Route path="/projects/:projectId" element={<Projects />} />
-        <Route path="/projects/:projectId" element={<Preview />} />
         <Route path="/community" element={<Community />} />
         <Route path="/my-projects" element={<MyProjects />} />
+        <Route path="/preview/:projectId" element={<Preview />} />
         <Route path="/preview/:projectId/:versionId" element={<Preview />} />
         <Route path="/view/:projectId" element={<View />} />
         <Route path="/settings" element={<SettingsPage />} />

@@ -1,36 +1,100 @@
 import { Loader2Icon } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { dummyProjects, dummyVersion } from '../assets/assets';
+import { useLocation, useParams } from 'react-router-dom';
+
+import api from '@/configs/axios';
 import ProjectPreview from '../components/ProjectPreview';
-import type { Project } from '../types';
+import type { Project, Version } from '../types';
+import { toast } from 'sonner';
+
+type PreviewLocationState = {
+  project?: Project;
+};
+
+const buildPreviewProject = (project: Partial<Project> & Pick<Project, 'id' | 'current_code'>): Project => ({
+  id: project.id,
+  name: project.name ?? 'Preview',
+  initial_prompt: project.initial_prompt ?? '',
+  current_code: project.current_code,
+  createdAt: project.createdAt ?? new Date().toISOString(),
+  updatedAt: project.updatedAt ?? new Date().toISOString(),
+  userId: project.userId ?? '',
+  user: project.user,
+  isPublished: project.isPublished,
+  versionId: project.versionId,
+  conversation: project.conversation ?? [],
+  versions: project.versions ?? [],
+  current_version_index: project.current_version_index ?? '',
+});
 
 const Preview = () => {
   const { projectId, versionId } = useParams();
+  const location = useLocation();
+  const locationState = location.state as PreviewLocationState | null;
+
   const [previewProject, setPreviewProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const project = dummyProjects.find((item) => item.id === projectId);
-
-    window.setTimeout(() => {
-      if (!project) {
+    const loadPreview = async () => {
+      if (!projectId) {
         setPreviewProject(null);
         setLoading(false);
         return;
       }
 
-      const versionCode =
-        project.versions.find((version) => version.id === versionId)?.code ??
-        dummyVersion.find((version) => version.id === versionId && version.projectId === projectId)?.code;
+      const routeProject = locationState?.project;
 
-      setPreviewProject({
-        ...project,
-        current_code: versionId ? versionCode || project.current_code : project.current_code,
-      });
-      setLoading(false);
-    }, 500);
-  }, [projectId, versionId]);
+      if (routeProject?.id === projectId) {
+        const matchedVersion = versionId
+          ? routeProject.versions?.find((version) => version.id === versionId)
+          : undefined;
+
+        setPreviewProject({
+          ...routeProject,
+          current_code: matchedVersion?.code ?? routeProject.current_code,
+        });
+        setLoading(false);
+        return;
+      }
+
+      const loadFromPublicRoute = async () => {
+        const { data } = await api.get(`/api/project/published/${projectId}`);
+        return buildPreviewProject({
+          id: projectId,
+          current_code: data.code ?? '',
+        });
+      };
+
+      const loadFromPrivateRoute = async () => {
+        const { data } = await api.get(`/api/project/preview/${projectId}`);
+        const matchedVersion = versionId
+          ? (data.project.versions as Version[] | undefined)?.find((version) => version.id === versionId)
+          : undefined;
+
+        return {
+          ...data.project,
+          current_code: matchedVersion?.code ?? data.project.current_code,
+        } as Project;
+      };
+
+      try {
+        const project = versionId
+          ? await loadFromPrivateRoute().catch(() => loadFromPublicRoute())
+          : await loadFromPublicRoute().catch(() => loadFromPrivateRoute());
+
+        setPreviewProject(project);
+      } catch (error: any) {
+        console.log(error);
+        toast.error(error?.response?.data?.message || error.message || 'Failed to load preview');
+        setPreviewProject(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void loadPreview();
+  }, [locationState?.project, projectId, versionId]);
 
   if (loading) {
     return (
