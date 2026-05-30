@@ -5,4 +5,4 @@
 5 provider.tsx consist of the authprovider but he do it some other way take care of it 
 6 There is footer just make it coorect
 7 improve all the wording and other small stuff of the project 
-
+8 fix the model with kwaiplot

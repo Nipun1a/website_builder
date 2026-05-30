@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import openai from "../configs/openai.js";
+import { generateGeminiContent } from "../configs/gemini.js";
 import prisma from "../lib/prisma.js";
 
 const PROJECT_CREATION_COST = 5;
@@ -16,6 +16,99 @@ const getParam = (req: Request, key: string) => {
 
 const cleanGeneratedCode = (code: string) => {
     return code.replace(/```[a-z]*\n?/gi, "").replace(/```$/g, "").trim();
+};
+
+const generateProjectCode = async (projectId: string, userId: string, initialPrompt: string) => {
+    try {
+        const enhancedPrompt = await generateGeminiContent(
+            `You are a prompt enhancement specialist. Take the user's website request and expand it into a detailed, comprehensive prompt that will help create the best possible website.
+Enhance this prompt by:
+1. Adding specific design details (layout, color scheme, typography)
+2. Specifying key sections and features
+3. Describing the user experience and interactions
+4. Including modern web design best practices
+5. Mentioning responsive design requirements
+6. Adding any missing but important elements
+Return ONLY the enhanced prompt, nothing else. Make it detailed but concise (2-3 paragraphs max).`,
+            initialPrompt
+        ).catch(() => initialPrompt);
+
+        await prisma.conversation.createMany({
+            data: [
+                {
+                    role: "assistant",
+                    content: `I've enhanced your prompt to: "${enhancedPrompt}"`,
+                    projectId
+                },
+                {
+                    role: "assistant",
+                    content: "Now generating your website...",
+                    projectId
+                }
+            ]
+        });
+
+        const generatedCode = await generateGeminiContent(
+            `You are an expert web developer. Create a complete, production-ready, single-page website based on this request: "${enhancedPrompt}"
+
+CRITICAL REQUIREMENTS:
+- You MUST output valid HTML ONLY.
+- Use Tailwind CSS for ALL styling.
+- Include this EXACT script in the <head>: <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+- Use Tailwind utility classes extensively for styling, animations, and responsiveness.
+- Make it fully functional and interactive with JavaScript in a <script> tag before closing </body>.
+- Use modern, beautiful design with great UX using Tailwind classes.
+- Make it responsive using Tailwind responsive classes (sm:, md:, lg:, xl:).
+- Use placeholder images from https://placehold.co/600x400.
+- Do NOT include markdown, explanations, notes, or code fences.
+
+The HTML should be complete and ready to render as-is with Tailwind CSS.`,
+            enhancedPrompt
+        );
+
+        if (!generatedCode) {
+            throw new Error("AI returned empty website code");
+        }
+
+        const version = await prisma.version.create({
+            data: {
+                code: generatedCode,
+                description: "Initial version",
+                projectId
+            }
+        });
+
+        await prisma.websiteProject.update({
+            where: { id: projectId },
+            data: {
+                current_code: generatedCode,
+                current_version_index: version.id
+            }
+        });
+
+        await prisma.conversation.create({
+            data: {
+                role: "assistant",
+                content: "I've created your website! You can now preview it and request changes.",
+                projectId
+            }
+        });
+    } catch (error: any) {
+        await prisma.user.update({
+            where: { id: userId },
+            data: { credits: { increment: PROJECT_CREATION_COST } }
+        }).catch(() => undefined);
+
+        await prisma.conversation.create({
+            data: {
+                role: "assistant",
+                content: `Website generation failed: ${error.message || "Unknown error"}. Your credits were refunded.`,
+                projectId
+            }
+        }).catch(() => undefined);
+
+        console.log(error.code || error.message);
+    }
 };
 
 export const getUserCredits = async (req: Request, res: Response) => {
@@ -43,6 +136,7 @@ export const getUserCredits = async (req: Request, res: Response) => {
 
 export const createUserProject = async (req: Request, res: Response) => {
     const userId = getRequestUserId(req);
+    let creditsDeducted = false;
 
     try {
         const { initial_prompt } = req.body;
@@ -92,102 +186,13 @@ export const createUserProject = async (req: Request, res: Response) => {
                 credits: { decrement: PROJECT_CREATION_COST }
             }
         });
+        creditsDeducted = true;
 
-        const promptEnhanceResponse = await openai.chat.completions.create({
-            model: "z-ai/glm-4.5-air",
-            messages: [
-                {
-                    role: "system",
-                    content: `You are a prompt enhancement specialist. Take the user's website request and expand it into a detailed, comprehensive prompt that will help create the best possible website.
-Enhance this prompt by:
-1. Adding specific design details (layout, color scheme, typography)
-2. Specifying key sections and features
-3. Describing the user experience and interactions
-4. Including modern web design best practices
-5. Mentioning responsive design requirements
-6. Adding any missing but important elements
-Return ONLY the enhanced prompt, nothing else. Make it detailed but concise (2-3 paragraphs max).`
-                },
-                {
-                    role: "user",
-                    content: initial_prompt
-                }
-            ]
-        });
-
-        const enhancedPrompt = promptEnhanceResponse.choices[0]?.message.content ?? initial_prompt;
-
-        await prisma.conversation.createMany({
-            data: [
-                {
-                    role: "assistant",
-                    content: `I've enhanced your prompt to: "${enhancedPrompt}"`,
-                    projectId: project.id
-                },
-                {
-                    role: "assistant",
-                    content: "Now generating your website...",
-                    projectId: project.id
-                }
-            ]
-        });
-
-        const codeGenerationResponse = await openai.chat.completions.create({
-            model: "z-ai/glm-4.5-air",
-            messages: [
-                {
-                    role: "system",
-                    content: `You are an expert web developer. Create a complete, production-ready, single-page website based on this request: "${enhancedPrompt}"
-
-CRITICAL REQUIREMENTS:
-- You MUST output valid HTML ONLY.
-- Use Tailwind CSS for ALL styling.
-- Include this EXACT script in the <head>: <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-- Use Tailwind utility classes extensively for styling, animations, and responsiveness.
-- Make it fully functional and interactive with JavaScript in a <script> tag before closing </body>.
-- Use modern, beautiful design with great UX using Tailwind classes.
-- Make it responsive using Tailwind responsive classes (sm:, md:, lg:, xl:).
-- Use placeholder images from https://placehold.co/600x400.
-- Do NOT include markdown, explanations, notes, or code fences.
-
-The HTML should be complete and ready to render as-is with Tailwind CSS.`
-                },
-                {
-                    role: "user",
-                    content: enhancedPrompt
-                }
-            ]
-        });
-
-        const generatedCode = cleanGeneratedCode(codeGenerationResponse.choices[0]?.message.content ?? "");
-
-        const version = await prisma.version.create({
-            data: {
-                code: generatedCode,
-                description: "Initial version",
-                projectId: project.id
-            }
-        });
-
-        await prisma.websiteProject.update({
-            where: { id: project.id },
-            data: {
-                current_code: generatedCode,
-                current_version_index: version.id
-            }
-        });
-
-        await prisma.conversation.create({
-            data: {
-                role: "assistant",
-                content: "I've created your website! You can now preview it and request changes.",
-                projectId: project.id
-            }
-        });
+        void generateProjectCode(project.id, userId, initial_prompt);
 
         res.json({ projectId: project.id });
     } catch (error: any) {
-        if (userId) {
+        if (userId && creditsDeducted) {
             await prisma.user.update({
                 where: { id: userId },
                 data: { credits: { increment: PROJECT_CREATION_COST } }

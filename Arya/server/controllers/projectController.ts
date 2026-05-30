@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import openai from "../configs/openai.js";
+import { generateGeminiContent } from "../configs/gemini.js";
 import prisma from "../lib/prisma.js";
 
 const REVISION_COST = 5;
@@ -68,12 +68,8 @@ export const makeRevision = async (req: Request, res: Response) => {
         });
         creditsDeducted = true;
 
-        const promptEnhanceResponse = await openai.chat.completions.create({
-            model: "z-ai/glm-4.5-air",
-            messages: [
-                {
-                    role: "system",
-                    content: `You are a prompt enhancement specialist. The user wants to make changes to their website. Enhance their request to be more specific and actionable for a web developer.
+        const enhancedPrompt = await generateGeminiContent(
+            `You are a prompt enhancement specialist. The user wants to make changes to their website. Enhance their request to be more specific and actionable for a web developer.
 
 Enhance this by:
 1. Being specific about what elements to change
@@ -81,16 +77,9 @@ Enhance this by:
 3. Clarifying the desired outcome
 4. Using clear technical terms
 
-Return ONLY the enhanced request, nothing else. Keep it concise (1-2 sentences).`
-                },
-                {
-                    role: "user",
-                    content: `User request: "${message}"`
-                }
-            ]
-        });
-
-        const enhancedPrompt = promptEnhanceResponse.choices[0]?.message.content ?? message;
+Return ONLY the enhanced request, nothing else. Keep it concise (1-2 sentences).`,
+            `User request: "${message}"`
+        ).catch(() => message);
 
         await prisma.conversation.create({
             data: {
@@ -100,12 +89,8 @@ Return ONLY the enhanced request, nothing else. Keep it concise (1-2 sentences).
             }
         });
 
-        const codeGenerationResponse = await openai.chat.completions.create({
-            model: "z-ai/glm-4.5-air",
-            messages: [
-                {
-                    role: "system",
-                    content: `You are an expert web developer.
+        const generatedCode = await generateGeminiContent(
+            `You are an expert web developer.
 
 CRITICAL REQUIREMENTS:
 - Return ONLY the complete updated HTML code with the requested changes.
@@ -115,16 +100,9 @@ CRITICAL REQUIREMENTS:
 - Make sure it's a complete, standalone HTML document with Tailwind CSS.
 - Return the HTML code only, nothing else.
 
-Apply the requested changes while maintaining the Tailwind CSS styling approach.`
-                },
-                {
-                    role: "user",
-                    content: `Here is the current website code: "${currentProject.current_code ?? ""}". The user wants this change: "${enhancedPrompt}"`
-                }
-            ]
-        });
-
-        const generatedCode = cleanGeneratedCode(codeGenerationResponse.choices[0]?.message.content ?? "");
+Apply the requested changes while maintaining the Tailwind CSS styling approach.`,
+            `Here is the current website code: "${currentProject.current_code ?? ""}". The user wants this change: "${enhancedPrompt}"`
+        );
 
         const version = await prisma.version.create({
             data: {
