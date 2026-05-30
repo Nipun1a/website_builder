@@ -299,5 +299,36 @@ export const toggleProjectPublish = async (req: Request, res: Response) => {
 };
 
 export const purchaseCredits = async (_req: Request, res: Response) => {
-    res.status(501).json({ message: "Purchase credits is not implemented yet" });
+    try {
+        interface Plan{
+            credits: number;
+            amount: number;
+
+        }
+        const plans = {
+            basic: { credits: 100, amount: 5},
+            pro: { credits: 400, amount: 19},
+            enterprise: {credits: 1000, amount: 49}
+    }   
+        const userId req.userId;
+        const {planId} = req.body as {planId: keyof typeof plans}
+        const plan: Plan = plans[planId]
+
+        if(!plan){
+            return res.status(400).json({message: "Plan not found"})
+
+        }
+        const transaction = await prisma.transaction.create({
+            data: {
+                userId: userId!,
+                planId: req.body.planId,
+                amount: plan.amount,
+                credits: plan.credits
+            }
+            })
+
+        
+        }catch (error) {
+        
+    }
 };
