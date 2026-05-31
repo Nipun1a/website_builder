@@ -66,8 +66,34 @@ const Home = () => {
   }
 
   return (
-    <section className="flex flex-col items-center text-white text-sm pb-20 px-4 font-poppins">
-      <a href="/" className="flex items-center gap-2 border border-slate-700 rounded-full p-1 pr-3 text-sm mt-20">
+    <section className="relative flex flex-col items-center overflow-hidden px-4 pb-20 text-sm text-white font-poppins">
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-20 bg-black"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0.62)), url('https://lh3.googleusercontent.com/aida/AP1WRLuspMduUpEUyTK6B87TGtdymWKQo4EGg9tEycH51Gn4ixGQW3P5ec9VUkCkHY32AB1PlBHtfeyVNHWE3hTail7wPsksY4G6Ifivxt_AmcWDugzy2_PH_uDqurvuVut-fQwlhHD6mW5gLAQDScTxD8_zPUKBYWKPCZY0lYR9ZAJ8k3F6Q8HDVPIhmeUbXHx29SSeBrxwPsReSoYeJpKiqRQQk8mqCT8mLFC_kmAaU0cL0FhS5X_Urr6cKNUS')",
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundSize: 'cover'
+        }}
+      />
+
+      <div
+        aria-hidden="true"
+        className="home-glow absolute -left-24 top-20 -z-10 h-72 w-72 rounded-full bg-cyan-400/20 blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="home-glow absolute right-[-6rem] top-40 -z-10 h-96 w-96 rounded-full bg-indigo-500/20 blur-3xl [animation-delay:-5s]"
+      />
+
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 -z-10 h-40 bg-[linear-gradient(to_bottom,rgba(99,102,241,0.24)_0%,rgba(0,0,0,0)_100%)]"
+      />
+
+      <a href="/" className="mt-20 flex items-center gap-2 rounded-full border border-slate-700 p-1 pr-3 text-sm">
         <span className="bg-indigo-600 text-xs px-3 py-1 rounded-full">NEW</span>
         <p className="flex items-center gap-2">
           <span>Free credits Start building today</span>

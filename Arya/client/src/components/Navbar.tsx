@@ -73,13 +73,13 @@ const Navbar = () => {
 
   return (
     <header className="relative">
-      <nav className="z-50 flex w-full items-center justify-between border-b border-slate-800 px-4 py-4 text-white backdrop-blur md:px-16 lg:px-24 xl:px-32">
+      <nav className="fixed inset-x-0 top-0 z-50 flex w-full items-center justify-between border-b border-transparent bg-transparent px-4 py-4 text-white backdrop-blur-sm md:px-16 lg:px-24 xl:px-32">
         <Link to="/" className="flex items-center gap-3 rounded-full transition hover:opacity-90">
-          <span className="flex h-16 w-40 items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-4 py-2 shadow-lg shadow-black/20 backdrop-blur-sm sm:h-18 sm:w-44">
+          <span className="flex h-10 w-20 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2 shadow-lg shadow-black/10 backdrop-blur-sm sm:h-18 sm:w-44">
             <img
               src={assets.logo}
               alt="logo"
-              className="h-full w-full rounded-xl object-contain"
+              className="h-30 w-30 rounded-xl object-contain"
             />
           </span>
         </Link>
@@ -187,6 +187,8 @@ const Navbar = () => {
         </div>
       </nav>
 
+      <div aria-hidden="true" className="h-[84px]" />
+
       {menuOpen && (
         <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-8 bg-black/60 text-lg text-white backdrop-blur transition-transform duration-300 md:hidden">
           <Link to="/" onClick={() => setMenuOpen(false)}>
@@ -240,7 +242,7 @@ const Navbar = () => {
 
       <img
         src="https://raw.githubusercontent.com/prebuiltui/prebuiltui/refs/heads/main/assets/hero/bg-gradient-2.png"
-        className="absolute inset-0 -z-10 size-full opacity-40"
+        className="absolute inset-0 -z-10 size-full opacity-10"
         alt=""
       />
     </header>

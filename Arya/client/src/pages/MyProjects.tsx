@@ -58,7 +58,28 @@ const MyProjects = () => {
   }, [fetchProjects, isPending, navigate, session?.user]);
 
   return (
-    <div className="px-4 md:px-16 lg:px-24 xl:px-32">
+    <div className="relative isolate min-h-screen overflow-hidden px-4 text-white md:px-16 lg:px-24 xl:px-32">
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-20 bg-black"
+        style={{
+          backgroundImage:
+            "url('https://lh3.googleusercontent.com/aida-public/AB6AXuAVc8B-8ftoYyS8s7T-Djsb1eUf7DEoKsTBesl-ZJX4kfh28doGwJE8OgwlkKNQwDP0rBJNF3HD97AvckDtMI7QpMgsiDdmJW3bLMICVv3MzWGvnI2oul_Kc5-ri9JihnNu0swpOzROrLYyDx2gf9s5YVLBqAyGWoz-MM-WR06gL7CUIPkWifI8y5o0lezck6fCLhtcRFGmsRmOMD-Mu2zfBsC-I-SW-NqShz7td-mIPdSE0gmyZijJfdNTMS4Rj4pVxqcSyfBMClHt')",
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundSize: 'cover'
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,rgba(0,209,255,0.18),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(99,102,241,0.16),transparent_26%),linear-gradient(180deg,rgba(0,0,0,0.22)_0%,rgba(0,0,0,0.68)_100%)]"
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 -z-10 h-40 bg-[linear-gradient(to_bottom,rgba(88,28,135,0.15)_0%,rgba(0,0,0,0)_100%)]"
+      />
+
+      <div className="relative">
       {loading ? (
         <div className="flex items-center justify-center h-[80vh]">
           <Loader2Icon className="h-7 w-7 animate-spin text-indigo-200" />
@@ -145,6 +166,7 @@ const MyProjects = () => {
         </div>
       )}
       <Footer/>
+      </div>
     </div>
   );
 };
