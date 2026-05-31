@@ -74,8 +74,14 @@ const Navbar = () => {
   return (
     <header className="relative">
       <nav className="z-50 flex w-full items-center justify-between border-b border-slate-800 px-4 py-4 text-white backdrop-blur md:px-16 lg:px-24 xl:px-32">
-        <Link to="/">
-          <img src={assets.logo} alt="logo" className="h-5 sm:h-7" />
+        <Link to="/" className="flex items-center gap-3 rounded-full transition hover:opacity-90">
+          <span className="flex h-14 w-28 items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-3 py-2 shadow-lg shadow-black/20 backdrop-blur-sm sm:h-16 sm:w-32">
+            <img
+              src={assets.logo}
+              alt="logo"
+              className="h-full w-full scale-110 rounded-xl object-contain"
+            />
+          </span>
         </Link>
 
         <div className="hidden items-center gap-8 transition duration-500 md:flex">

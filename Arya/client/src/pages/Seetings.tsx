@@ -12,8 +12,8 @@ export default function SettingsPage() {
             Profile & Settings
           </h1>
           <p className="max-w-2xl text-sm text-white/70 sm:text-base">
-            Update your name, avatar, and email details here. These controls are
-            tied to the signed-in profile shown in the navbar.
+            Update your name, avatar, and password details here. These controls
+            are tied to the signed-in profile shown in the navbar.
           </p>
         </div>
 

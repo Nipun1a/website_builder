@@ -17,7 +17,7 @@ import { toast } from 'sonner'
 import EditorPanel, { type SelectedElementData } from '../components/EditorPanel'
 import ProjectPreview, { type ProjectPreviewRef } from '../components/ProjectPreview'
 import Sidebar from '../components/Sidebar'
-import logo from '../assets/logo.svg'
+import logo from '../assets/logo.png'
 import type { Project } from '../types'
 import api from '@/configs/axios'
 import { authClient } from '@/lib/auth-client'
@@ -221,7 +221,7 @@ const Projects = () => {
             {isSaving ? <Loader2Icon className="animate-spin" size={16} /> : <SaveIcon size={16} />}
             Save
           </button>
-          <Link target="_blank" to={`/view/${projectId}`} className="flex items-center gap-2 px-4 py-1 rounded-sm border border-gray-700 hover:border-gray-500 transition-colors">
+          <Link target="_blank" to={`/preview/${projectId}`} className="flex items-center gap-2 px-4 py-1 rounded-sm border border-gray-700 hover:border-gray-500 transition-colors">
             <FullscreenIcon size={16} />
             Preview
           </Link>

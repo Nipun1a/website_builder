@@ -4,9 +4,7 @@ import { useAuth } from "@better-auth-ui/react"
 import type { ComponentProps } from "react"
 
 import { cn } from "@/lib/utils"
-import { ChangeEmail } from "./change-email"
 import { ChangePassword } from "./change-password"
-import { DeleteUser } from "./delete-user"
 import { UserProfile } from "./user-profile"
 
 export type AccountSettingsProps = {
@@ -16,21 +14,14 @@ export type AccountSettingsProps = {
 /**
  * Renders the account settings layout.
  *
- * Uses `emailAndPassword` and `plugins` from `useAuth()` to conditionally
- * show sections:
- * - `UserProfile` always renders.
- * - `ChangeEmail` renders when `emailAndPassword?.enabled` is truthy or the
- *   `magicLink` plugin is registered.
- * - Plugin-contributed account cards are rendered via the plugins array
- *   (e.g. `Appearance` from the theme plugin, multi-session accounts).
+ * Uses `emailAndPassword` from `useAuth()` to conditionally show the password
+ * section while keeping profile details visible.
  */
 export function AccountSettings({
   className,
   ...props
 }: AccountSettingsProps & ComponentProps<"div">) {
-  const { emailAndPassword, plugins } = useAuth()
-
-  const hasMagicLink = plugins.some((plugin) => plugin.id === "magicLink")
+  const { emailAndPassword } = useAuth()
 
   return (
     <div
@@ -38,15 +29,7 @@ export function AccountSettings({
       {...props}
     >
       <UserProfile />
-      {(emailAndPassword?.enabled || hasMagicLink) && <ChangeEmail />}
       {emailAndPassword?.enabled && <ChangePassword />}
-      <DeleteUser />
-      {plugins.flatMap(
-        (plugin) =>
-          plugin.accountCards?.map((Card, index) => (
-            <Card key={`${plugin.id}-${index.toString()}`} />
-          )) ?? []
-      )}
     </div>
   )
 }

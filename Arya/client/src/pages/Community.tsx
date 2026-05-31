@@ -18,7 +18,7 @@ const Community = () => {
   const fetchProjects = useCallback(async () => {
     setLoading(true);
     try{
-      const {data} = await api.get('/api/projects/published')
+      const {data} = await api.get('/api/project/published')
       const combinedProjects = [...dummyProjects, ...data.projects]
       const uniqueProjects = combinedProjects.filter(
         (project, index, allProjects) =>
@@ -55,7 +55,7 @@ const Community = () => {
           <div className="flex flex-wrap gap-3.5">
             {projects.map((project) => (
               <div
-                onClick={() => navigate(`/preview/${project.id}`, { state: { project } })}
+                onClick={() => navigate(`/view/${project.id}`)}
                 key={project.id}
                 className="relative group w-72 max-sm:mx-auto cursor-pointer bg-gray-900/60 border border-gray-700 rounded-lg overflow-hidden shadow-md hover:shadow-indigo-700/30 hover:border-indigo-800/80 transition-all duration-300"
               >
@@ -75,7 +75,7 @@ const Community = () => {
                   )}
                   <div className="absolute bottom-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
-                      onClick={(e) => { e.stopPropagation(); navigate(`/preview/${project.id}`, { state: { project } }); }}
+                      onClick={(e) => { e.stopPropagation(); navigate(`/view/${project.id}`); }}
                       className="px-3 py-1 bg-white/20 hover:bg-white/30 text-white text-sm rounded transition-all"
                     >
                       Preview
@@ -88,7 +88,7 @@ const Community = () => {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate(`/preview/${project.id}`, { state: { project } });
+                        navigate(`/view/${project.id}`);
                       }}
                       className='text-sm text-indigo-300 hover:text-white transition-colors'
                     >
