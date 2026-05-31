@@ -1,7 +1,7 @@
 import React, { forwardRef, useEffect, useImperativeHandle } from 'react'
 import type { Project } from '../types'
 import { iframeScript } from '../assets/assets';
-import type { SelectedElementData } from './EditorPanel';
+import type { SelectedElementData, SelectedElementUpdate } from './EditorPanel';
 import LoaderSteps from './LoaderSteps';
 
 
@@ -16,7 +16,7 @@ interface ProjectPreviewProps {
 }
 export interface ProjectPreviewRef {
     getCode: ()=> string | undefined;
-    updateSelectedElement: (updates: Partial<SelectedElementData> & { styles?: Partial<SelectedElementData['styles']> }) => void;
+    updateSelectedElement: (updates: SelectedElementUpdate) => void;
     clearSelection: () => void;
 }
 
@@ -61,7 +61,7 @@ const ProjectPreview = forwardRef<ProjectPreviewRef, ProjectPreviewProps>(({proj
                 type: 'CLEAR_SELECTION_REQUEST',
             }, '*');
         },
-    }), []);
+    }), [project.current_code]);
 
     useEffect(() => {
         const handleMessage = (event: MessageEvent) => {

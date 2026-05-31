@@ -14,7 +14,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
-import EditorPanel, { type SelectedElementData } from '../components/EditorPanel'
+import EditorPanel, { type SelectedElementData, type SelectedElementUpdate } from '../components/EditorPanel'
 import ProjectPreview, { type ProjectPreviewRef } from '../components/ProjectPreview'
 import Sidebar from '../components/Sidebar'
 import logo from '../assets/logo.png'
@@ -137,7 +137,7 @@ const Projects = () => {
     }
   }
 
-  const handleElementUpdate = (updates: Partial<SelectedElementData> & { styles?: Partial<SelectedElementData['styles']> }) => {
+  const handleElementUpdate = (updates: SelectedElementUpdate) => {
     if (!selectedElement) return
 
     const nextValue: SelectedElementData = {

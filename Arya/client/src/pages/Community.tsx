@@ -1,5 +1,5 @@
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Project } from '../types';
 import { Loader2Icon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -7,6 +7,7 @@ import Footer from '../components/Footer';
 import { dummyProjects } from '../assets/assets';
 import api from '@/configs/axios';
 import { toast } from 'sonner';
+import { getErrorMessage } from '@/lib/error';
 
 
 
@@ -15,29 +16,41 @@ const Community = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const navigate = useNavigate();
 
-  const fetchProjects = useCallback(async () => {
-    setLoading(true);
-    try{
-      const {data} = await api.get('/api/project/published')
-      const combinedProjects = [...dummyProjects, ...data.projects]
-      const uniqueProjects = combinedProjects.filter(
-        (project, index, allProjects) =>
-          index === allProjects.findIndex((item) => item.id === project.id)
-      )
-
-      setProjects(uniqueProjects)
-    }catch(error:any){
-      console.log(error);
-      toast.error(error?.response?.data?.message || error.message);
-      setProjects(dummyProjects as Project[])
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    void fetchProjects();
-  }, [fetchProjects]);
+    let isActive = true;
+
+    const loadProjects = async () => {
+      setLoading(true);
+      try {
+        const { data } = await api.get('/api/project/published');
+        const combinedProjects = [...dummyProjects, ...data.projects];
+        const uniqueProjects = combinedProjects.filter(
+          (project, index, allProjects) =>
+            index === allProjects.findIndex((item) => item.id === project.id)
+        );
+
+        if (isActive) {
+          setProjects(uniqueProjects);
+        }
+      } catch (error: unknown) {
+        console.log(error);
+        toast.error(getErrorMessage(error));
+        if (isActive) {
+          setProjects(dummyProjects as Project[]);
+        }
+      } finally {
+        if (isActive) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void loadProjects();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   return (
     <div className="relative isolate min-h-screen overflow-hidden px-4 text-white md:px-16 lg:px-24 xl:px-32">

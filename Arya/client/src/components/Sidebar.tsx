@@ -1,8 +1,10 @@
 import { BotIcon, CodeIcon, Loader2Icon, SendIcon, UserIcon } from 'lucide-react';
 import type { Project, Version } from '../types';
-import { useEffect, useRef, useState, FormEvent } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { FormEvent } from 'react';
 import api from '@/configs/axios';
 import { toast } from 'sonner';
+import { getErrorMessage } from '@/lib/error';
 
 interface SidebarProps {
   isMenuOpen: boolean;
@@ -27,8 +29,8 @@ const Sidebar = ({
       const {data} = await api.get(`/api/user/project/${project.id}`)
       setProject(data.project)
 
-    }catch(error:any){
-      toast.error(error?.response?.data?.message || error.message);
+    }catch(error: unknown){
+      toast.error(getErrorMessage(error));
       console.log(error);
     }
   }
@@ -45,8 +47,8 @@ const Sidebar = ({
       toast.success(data.message || 'Rolled back to selected version');
       setProject(data2.project);
       setIsGenerating(false);
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || error.message || 'Failed to roll back');
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Failed to roll back'));
       console.log(error);
       setIsGenerating(false);
     }
@@ -54,24 +56,19 @@ const Sidebar = ({
 
   const handleRevision = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    let interval:number | undefined;
     try {
       setIsGenerating(true);
-      interval = setInterval(() => {
-      },10000)
       const { data } = await api.post(`/api/project/revision/${project.id}`, { message });
       await fetchProject();
       toast.success(data?.message || 'Revision requested');
       setMessage('');
-      if (interval) clearInterval(interval as unknown as number);
       setIsGenerating(false);
 
 
-    } catch (error:any) {
+    } catch (error: unknown) {
       setIsGenerating(false);
-      toast.error(error?.response?.data?.message || error.message);
+      toast.error(getErrorMessage(error));
       console.log(error);
-      if (interval) clearInterval(interval as unknown as number);
       
     }
   };

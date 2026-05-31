@@ -6,6 +6,7 @@ import api from '@/configs/axios';
 import ProjectPreview from '../components/ProjectPreview';
 import type { Project, Version } from '../types';
 import { toast } from 'sonner';
+import { getErrorMessage } from '@/lib/error';
 
 type PreviewLocationState = {
   project?: Project;
@@ -84,9 +85,9 @@ const Preview = () => {
           : await loadFromPublicRoute().catch(() => loadFromPrivateRoute());
 
         setPreviewProject(project);
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.log(error);
-        toast.error(error?.response?.data?.message || error.message || 'Failed to load preview');
+        toast.error(getErrorMessage(error, 'Failed to load preview'));
         setPreviewProject(null);
       } finally {
         setLoading(false);

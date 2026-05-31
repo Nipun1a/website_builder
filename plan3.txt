@@ -1,0 +1,92 @@
+Plan 3 — Deployment readiness and Vercel rollout
+
+What I fixed
+- Cleaned the client ESLint errors and the client TypeScript build errors.
+- Split the backend into a reusable Express app and a Vercel entrypoint.
+- Added frontend SPA routing support for Vercel.
+- Kept Prisma generation and backend builds working for deployment.
+
+How it was done in brief
+- Replaced `any` usage with typed helpers and safer `unknown` error handling.
+- Moved shared error formatting into `Arya/client/src/lib/error.ts`.
+- Removed React hook patterns that triggered lint warnings.
+- Split button variant constants out of the component file to satisfy Fast Refresh.
+- Created `Arya/server/app.ts` for the Express app and `Arya/server/api/[...all].ts` for Vercel.
+- Updated backend scripts so Prisma generates before TypeScript builds.
+- Redirected backend output to `dist` and ignored it in Git.
+
+Vercel deployment plan from now
+Frontend app: `Arya/client`
+1. Create a new Vercel project from the `client` folder.
+2. Set build command to `npm run build`.
+3. Set output directory to `dist`.
+4. Add environment variable `VITE_BASEURL` with the deployed backend URL.
+5. Deploy, then verify client-side routes work by refreshing on nested pages.
+
+Backend app: `Arya/server`
+1. Create a separate Vercel project from the `server` folder.
+2. Keep the source entrypoint in `Arya/server/api/[...all].ts`.
+3. Set build command to `npm run build`.
+4. Add required env vars: `DATABASE_URL`, `BETTER_AUTH_URL`, `BETTER_AUTH_SECRET`, `TRUSTED_ORIGINS`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, and any OpenAI/Gemini keys used by the server.
+5. Deploy and test `/api/auth`, `/api/user`, `/api/project`, and `/api/stripe/webhook`.
+
+Important order
+- Deploy backend first so you have the live API URL.
+- Point `VITE_BASEURL` in the frontend to that backend URL.
+- Redeploy frontend after updating the env var.
+
+Quick verification after deploy
+- Open the frontend home page.
+- Sign in and confirm auth cookies work.
+- Load projects and preview pages.
+- Test one backend action such as saving a project or publishing a project.
+
+
+
+Absolutely — here’s the exact Vercel setup to paste in.
+
+1) Frontend project: Arya/client
+
+Root Directory: Arya/client
+Framework Preset: Vite
+Build Command: npm run build
+Install Command: npm install
+Output Directory: dist
+Development Command: leave default, or npm run dev
+Node.js Version: 22.x if Vercel asks
+Environment Variables
+
+VITE_BASEURL = https://YOUR-BACKEND-VERCEL-URL.vercel.app
+2) Backend project: Arya/server
+
+Root Directory: Arya/server
+Framework Preset: Other
+Build Command: npm run build
+Install Command: npm install
+Output Directory: leave blank
+Development Command: leave default, or npm run server
+Node.js Version: 22.x
+Environment Variables
+
+DATABASE_URL = your Postgres connection string
+BETTER_AUTH_URL = https://YOUR-BACKEND-VERCEL-URL.vercel.app
+BETTER_AUTH_SECRET = a long random secret string
+TRUSTED_ORIGINS = https://YOUR-FRONTEND-VERCEL-URL.vercel.app,https://YOUR-BACKEND-VERCEL-URL.vercel.app
+CLIENT_URL = https://YOUR-FRONTEND-VERCEL-URL.vercel.app
+STRIPE_SECRET_KEY = your Stripe secret key
+STRIPE_WEBHOOK_SECRET = your Stripe webhook secret
+OPENAI_API_KEY = your OpenRouter/OpenAI key used by Arya/server/configs/openai.ts
+GEMINI_API_KEY = your Gemini key used by Arya/server/configs/gemini.ts
+Deploy order
+
+Deploy backend first.
+Copy the backend URL into VITE_BASEURL.
+Deploy frontend again.
+After deploy, test these URLs
+
+Frontend home page
+Login / signup
+Projects
+Preview
+Backend routes like /api/auth, /api/user, /api/project
+If you want, I can also make you a copy-paste checklist with the exact values filled in as placeholders like FRONTEND_URL and BACKEND_URL

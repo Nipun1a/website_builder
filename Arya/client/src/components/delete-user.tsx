@@ -54,7 +54,7 @@ export function DeleteUser({ className }: DeleteUserProps) {
   const [password, setPassword] = useState("")
 
   const hasCredentialAccount = accounts?.some(
-    (account) => account.providerId === "credential"
+    (account: { providerId?: string }) => account.providerId === "credential"
   )
   const needsPassword = !sendDeleteAccountVerification && hasCredentialAccount
 

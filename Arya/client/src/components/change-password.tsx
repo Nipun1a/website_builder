@@ -46,7 +46,7 @@ export function ChangePassword({ className }: ChangePasswordProps) {
     useListAccounts(authClient)
 
   const hasCredentialAccount = accounts?.some(
-    (account) => account.providerId === "credential"
+    (account: { providerId?: string }) => account.providerId === "credential"
   )
 
   if (!isAccountsPending && !hasCredentialAccount) {

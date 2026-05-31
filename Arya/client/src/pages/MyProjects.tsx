@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Project } from '../types';
 import { Loader2Icon, PlusIcon, TrashIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -6,6 +6,7 @@ import Footer from '../components/Footer';
 import api from '@/configs/axios';
 import { authClient } from '@/lib/auth-client';
 import { toast } from 'sonner';
+import { getErrorMessage } from '@/lib/error';
 
 
 const MyProjects = () => {
@@ -13,19 +14,6 @@ const MyProjects = () => {
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState<Project[]>([]);
   const navigate = useNavigate();
-
-  const fetchProjects = useCallback(async () => {
-    setLoading(true);
-    try {
-      const {data} = await api.get('/api/user/projects')
-      setProjects(data.projects)
-    } catch (error: any) {
-      console.log(error);
-      toast.error(error?.response?.data?.message || error.message);
-    } finally {
-      setLoading(false)
-    }
-  }, []);
 
   const deleteProject = async (projectId: string) => {
     try {
@@ -37,9 +25,9 @@ const MyProjects = () => {
       toast.success('Project deleted successfully');
       setProjects((currentProjects) => currentProjects.filter((project) => project.id !== projectId));
       
-    } catch (error:any) {
+    } catch (error: unknown) {
       console.log(error);
-      toast.error(error?.response?.data?.message || error.message);
+      toast.error(getErrorMessage(error));
       
     }
   }
@@ -49,13 +37,36 @@ const MyProjects = () => {
       return;
     }
 
-    if(session?.user && !isPending){
-      void fetchProjects()
+    let isActive = true;
+
+    const loadProjects = async () => {
+      try {
+        setLoading(true);
+        const { data } = await api.get('/api/user/projects');
+        if (isActive) {
+          setProjects(data.projects);
+        }
+      } catch (error: unknown) {
+        console.log(error);
+        toast.error(getErrorMessage(error));
+      } finally {
+        if (isActive) {
+          setLoading(false);
+        }
+      }
+    };
+
+    if(session?.user){
+      void loadProjects()
     }else if (!isPending && !session?.user){
       navigate('/');
       toast('Please login to view your projects');
     }
-  }, [fetchProjects, isPending, navigate, session?.user]);
+
+    return () => {
+      isActive = false;
+    };
+  }, [isPending, navigate, session?.user]);
 
   return (
     <div className="relative isolate min-h-screen overflow-hidden px-4 text-white md:px-16 lg:px-24 xl:px-32">
