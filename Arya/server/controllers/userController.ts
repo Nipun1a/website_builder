@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { generateGeminiContent } from "../configs/gemini.js";
 import prisma from "../lib/prisma.js";
+import Stripe from "stripe";
 
 const PROJECT_CREATION_COST = 5;
 
@@ -298,37 +299,77 @@ export const toggleProjectPublish = async (req: Request, res: Response) => {
     }
 };
 
-export const purchaseCredits = async (_req: Request, res: Response) => {
+export const purchaseCredits = async (req: Request, res: Response) => {
     try {
-        interface Plan{
-            credits: number;
-            amount: number;
+        const userId = req.userId;
+        const { planId } = req.body as { planId?: "basic" | "pro" | "enterprise" };
 
-        }
         const plans = {
-            basic: { credits: 100, amount: 5},
-            pro: { credits: 400, amount: 19},
-            enterprise: {credits: 1000, amount: 49}
-    }   
-        const userId req.userId;
-        const {planId} = req.body as {planId: keyof typeof plans}
-        const plan: Plan = plans[planId]
+            basic: { credits: 100, amount: 5 },
+            pro: { credits: 400, amount: 19 },
+            enterprise: { credits: 1000, amount: 49 }
+        } as const;
 
-        if(!plan){
-            return res.status(400).json({message: "Plan not found"})
-
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized user" });
         }
+
+        if (!planId || !(planId in plans)) {
+            return res.status(400).json({ message: "Plan not found" });
+        }
+
+        const plan = plans[planId];
+        const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+
+        if (!stripeSecretKey) {
+            return res.status(500).json({ message: "Stripe secret key is not configured" });
+        }
+
         const transaction = await prisma.transaction.create({
             data: {
-                userId: userId!,
-                planId: req.body.planId,
+                userId,
+                planId,
                 amount: plan.amount,
                 credits: plan.credits
             }
-            })
+        });
 
-        
-        }catch (error) {
-        
+        const stripe = new Stripe(stripeSecretKey);
+        const origin = req.headers.origin ?? process.env.CLIENT_URL ?? process.env.TRUSTED_ORIGINS?.split(",")[0];
+
+        if (!origin) {
+            return res.status(500).json({ message: "Client URL is not configured" });
+        }
+
+        const session = await stripe.checkout.sessions.create({
+            mode: "payment",
+            line_items: [
+                {
+                    price_data: {
+                        currency: "usd",
+                        product_data: {
+                            name: `AI-SITE-BUILDER - ${plan.credits} credits`
+                        },
+                        unit_amount: plan.amount * 100
+                    },
+                    quantity: 1
+                }
+            ],
+            metadata: {
+                transactionId: transaction.id,
+                appId: "ai-site-builder"
+            },
+            success_url: `${origin}/pricing?success=true&session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${origin}/pricing?canceled=true`
+        });
+
+        if (!session.url) {
+            return res.status(500).json({ message: "Stripe checkout session did not return a payment link" });
+        }
+
+        return res.json({ payment_link: session.url });
+    } catch (error: any) {
+        console.log(error.code || error.message);
+        return res.status(500).json({ message: error.code || error.message || "Failed to create checkout session" });
     }
 };
