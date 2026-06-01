@@ -4,6 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { toNodeHandler } from 'better-auth/node';
 import { auth } from './lib/auth.js';
+import { isTrustedOrigin } from './lib/origins.js';
 import userRouter from './routes/userRoutes.js';
 import projectRouter from './routes/projectRoutes.js';
 import { stripeWebhook } from './controllers/stripeWebhook.js';
@@ -12,23 +13,9 @@ dotenv.config();
 
 const app = express();
 
-const normalizeOrigin = (origin: string) => origin.trim().replace(/\/$/, '');
-
-const trustedOrigins = [
-  ...(process.env.TRUSTED_ORIGINS?.split(',') ?? []),
-  process.env.CLIENT_URL,
-  process.env.FRONTEND_URL,
-]
-  .filter((origin): origin is string => Boolean(origin?.trim()))
-  .map(normalizeOrigin);
-
 const corsOptions = {
   origin: (origin: string | undefined, callback: (error: Error | null, allow?: boolean) => void) => {
-    if (!origin) {
-      return callback(null, true);
-    }
-
-    return callback(null, trustedOrigins.includes(normalizeOrigin(origin)));
+    return callback(null, isTrustedOrigin(origin));
   },
   credentials: true,
   optionsSuccessStatus: 200,

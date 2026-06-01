@@ -1,16 +1,7 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import prisma from './prisma.js';
-
-const normalizeOrigin = (origin: string) => origin.trim().replace(/\/$/, "");
-
-const trustedOrigins = [
-  ...(process.env.TRUSTED_ORIGINS?.split(",") ?? []),
-  process.env.CLIENT_URL,
-  process.env.FRONTEND_URL,
-]
-  .filter((origin): origin is string => Boolean(origin?.trim()))
-  .map(normalizeOrigin);
+import { getTrustedOrigins, normalizeOrigin } from "./origins.js";
 
 const baseURL = process.env.BETTER_AUTH_URL
   ? normalizeOrigin(process.env.BETTER_AUTH_URL)
@@ -54,7 +45,7 @@ export const auth = betterAuth({
       clientSecret: process.env.GITHUB_CLIENT_SECRET as string, 
     },
   },*/ 
-  trustedOrigins,
+  trustedOrigins: getTrustedOrigins(),
   baseURL,
   secret: process.env.BETTER_AUTH_SECRET!,
   advanced:{
