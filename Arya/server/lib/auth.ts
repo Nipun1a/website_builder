@@ -2,7 +2,20 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import prisma from './prisma.js';
 
-const trustedOrigins = process.env.TRUSTED_ORIGINS?.split(',') || [];
+const normalizeOrigin = (origin: string) => origin.trim().replace(/\/$/, "");
+
+const trustedOrigins = [
+  ...(process.env.TRUSTED_ORIGINS?.split(",") ?? []),
+  process.env.CLIENT_URL,
+  process.env.FRONTEND_URL,
+]
+  .filter((origin): origin is string => Boolean(origin?.trim()))
+  .map(normalizeOrigin);
+
+const baseURL = process.env.BETTER_AUTH_URL
+  ? normalizeOrigin(process.env.BETTER_AUTH_URL)
+  : undefined;
+
 export const auth = betterAuth({
     database: prismaAdapter(prisma, {
         provider: "postgresql", // or "mysql", "postgresql", ...etc
@@ -42,7 +55,7 @@ export const auth = betterAuth({
     },
   },*/ 
   trustedOrigins,
-  baseURL: process.env.BETTER_AUTH_URL!,
+  baseURL,
   secret: process.env.BETTER_AUTH_SECRET!,
   advanced:{
     cookies:{

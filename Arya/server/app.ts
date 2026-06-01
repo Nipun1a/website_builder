@@ -12,10 +12,29 @@ dotenv.config();
 
 const app = express();
 
+const normalizeOrigin = (origin: string) => origin.trim().replace(/\/$/, '');
+
+const trustedOrigins = [
+  ...(process.env.TRUSTED_ORIGINS?.split(',') ?? []),
+  process.env.CLIENT_URL,
+  process.env.FRONTEND_URL,
+]
+  .filter((origin): origin is string => Boolean(origin?.trim()))
+  .map(normalizeOrigin);
+
 const corsOptions = {
-  origin: process.env.TRUSTED_ORIGINS?.split(',') || [],
+  origin: (origin: string | undefined, callback: (error: Error | null, allow?: boolean) => void) => {
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    return callback(null, trustedOrigins.includes(normalizeOrigin(origin)));
+  },
   credentials: true,
   optionsSuccessStatus: 200,
+  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  maxAge: 86400,
 };
 
 app.use(cors(corsOptions));
