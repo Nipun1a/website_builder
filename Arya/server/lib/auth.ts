@@ -7,6 +7,8 @@ const baseURL = process.env.BETTER_AUTH_URL
   ? normalizeOrigin(process.env.BETTER_AUTH_URL)
   : undefined;
 
+const isProduction = process.env.NODE_ENV === "production" || process.env.VERCEL === "1";
+
 export const auth = betterAuth({
     database: prismaAdapter(prisma, {
         provider: "postgresql", // or "mysql", "postgresql", ...etc
@@ -54,8 +56,8 @@ export const auth = betterAuth({
             name: 'auth_session',
             attributes:{
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+                secure: isProduction,
+                sameSite: isProduction ? 'none' : 'lax',
                 path: '/',
             }
         }
